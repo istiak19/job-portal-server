@@ -25,8 +25,10 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
-        // Jobs related apis
         const jobsCollection = client.db('jobPortal').collection('jobs')
+        const jobApplicationCollection = client.db('jobPortal').collection('job_application')
+
+        // Jobs related apis
 
         app.get('/jobs', async (req, res) => {
             const cursor = jobsCollection.find();
@@ -38,6 +40,31 @@ async function run() {
             const id = req.params.id
             const query = { _id: new ObjectId(id) };
             const result = await jobsCollection.findOne(query);
+            res.send(result)
+        })
+
+        // Job applications apis
+        app.get('/job-application', async (req, res) => {
+            const email = req.query.email
+            const query = { applicant_email: email };
+            const result = await jobApplicationCollection.find(query).toArray();
+            for (let application of result) {
+                console.log(application.job_id)
+                const query1 = { _id: new ObjectId(application.job_id) };
+                const job = await jobsCollection.findOne(query1);
+                if (job) {
+                    application.title = job.title,
+                        application.company = job.company,
+                        application.location = job.location
+                    application.company_logo = job.company_logo
+                }
+            }
+            res.send(result)
+        })
+
+        app.post('/job-application', async (req, res) => {
+            const application = req.body
+            const result = await jobApplicationCollection.insertOne(application);
             res.send(result)
         })
 
