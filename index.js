@@ -31,15 +31,34 @@ async function run() {
         // Jobs related apis
 
         app.get('/jobs', async (req, res) => {
-            const cursor = jobsCollection.find();
+            const email = req.query.email
+            let query = {}
+            if (email) {
+                query = { hr_email: email };
+            }
+            const cursor = jobsCollection.find(query);
             const result = await cursor.toArray()
             res.send(result)
         })
+
+        // app.get('/jobs', async (req, res) => {
+        //     const email = req.query.email
+        //     const query = { hr_email: email };
+        //     const cursor = jobsCollection.find(query);
+        //     const result = await cursor.toArray()
+        //     res.send(result)
+        // })
 
         app.get('/jobs/:id', async (req, res) => {
             const id = req.params.id
             const query = { _id: new ObjectId(id) };
             const result = await jobsCollection.findOne(query);
+            res.send(result)
+        })
+
+        app.post('/jobs', async (req, res) => {
+            const job = req.body
+            const result = await jobsCollection.insertOne(job);
             res.send(result)
         })
 
